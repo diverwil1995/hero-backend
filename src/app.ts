@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import axios from 'axios';
@@ -28,7 +28,6 @@ app.get('/heroes/:heroId', async (req, res) => {
     
     const heroId: string = req.params.heroId
 
-    // curl -H "Accept: application/json" -H "Content-Type: application/json" -X GET https://hahow-recruit.herokuapp.com/heroes/1
     const url: string = `https://hahow-recruit.herokuapp.com/heroes/${heroId}`
     const response = await axiosInstance.get(url, {
         headers: {
@@ -36,14 +35,16 @@ app.get('/heroes/:heroId', async (req, res) => {
             "Content-Type": "application/json"
         }
     })
+
     const data = response.data
+    // 捕捉回傳內容，已知兩種情形，一種是正常回傳資訊，另一種是回傳 status: 200 卻有帶 message: backend error
     if(data.id) {}
 
     if("id" in data) {}
 
     if(typeof data.id === "string") {}
     
-    if(data.id) {
+    if(typeof data.id === "string" && data.id.trim()) {
         const singleHeroResponse: SingleHeroResponse = {
             id: data.id,
             name: data.name,
@@ -57,7 +58,21 @@ app.get('/heroes/:heroId', async (req, res) => {
             message: data.message
         })
     }
-    
+})
+
+app.get('/heroes', async (req, res) => {
+    const url: string = `https://hahow-recruit.herokuapp.com/heroes`
+
+    const response = await axiosInstance.get(url, {
+        headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+        }
+    })
+    const data = response.data
+    console.log(data)
+
+    res.json("it works")
 })
 
 app.use((req, res) => {
