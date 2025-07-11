@@ -24,6 +24,28 @@ type HeroInfo = {
     image: string
 }
 
+type ListHeroesResponse = {
+    heroes: [HeroInfo]
+}
+
+app.get('/heroes', async (req, res) => {
+    const url: string = `https://hahow-recruit.herokuapp.com/heroes`
+
+    const response = await axiosInstance.get(url, {
+        headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+        }
+    })
+    const data = response.data
+    if(typeof data[0].id === "string" && data[0].id.trim()) {
+        const listHeroesResponse: ListHeroesResponse = {
+            heroes:[data]
+        }
+        res.json(listHeroesResponse)
+    }
+})
+
 type SingleHeroResponse = HeroInfo
 
 app.get('/heroes/:heroId', async (req, res) => {
@@ -66,26 +88,43 @@ app.get('/heroes/:heroId', async (req, res) => {
     }
 })
 
-type ListHeroesResponse = {
-    heroes: [HeroInfo]
+type AuthData = {
+    name: string
+    password: string
 }
 
-app.get('/heroes', async (req, res) => {
-    const url: string = `https://hahow-recruit.herokuapp.com/heroes`
+app.get('/me/heroes', (req, res) => {
+    const authUrl: string = ``
+    const profileUrl: string = ``
 
-    const response = await axiosInstance.get(url, {
+
+})
+
+app.get('/me/heroes/:heroId', async (req, res) => {
+    const heroId: string = req.params.heroId
+    const authUrl: string = `https://hahow-recruit.herokuapp.com/auth`
+    const profileUrl: string = `https://hahow-recruit.herokuapp.com/heroes/${heroId}/profile`
+
+    const authData: AuthData = {
+        name: "hahow",
+        password: "rocks" 
+    }
+
+    const authResponse = await axiosInstance.post(authUrl, authData, {
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    console.log(authResponse)
+
+    const profileResponse = await axiosInstance.get(profileUrl, {
         headers: {
             Accept: "application/json",
             "Content-Type": "application/json"
         }
     })
-    const data = response.data
-    if(typeof data[0].id === "string" && data[0].id.trim()) {
-        const listHeroesResponse: ListHeroesResponse = {
-            heroes:[data]
-        }
-        res.json(listHeroesResponse)
-    }
+    const profile = profileResponse.data
+
 })
 
 app.use((req, res) => {
