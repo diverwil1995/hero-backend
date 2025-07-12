@@ -1,6 +1,6 @@
 import { AxiosInstance } from "axios"
 import { error } from "console";
-import { object, string, InferType } from 'yup';
+import { object, array, string, InferType } from 'yup';
 
 const getHeroSchema = object ({
     id: string().required(),
@@ -10,9 +10,13 @@ const getHeroSchema = object ({
 
 export type HeroResponse = InferType<typeof getHeroSchema>
 
+const getHeroesSchema = array().of(getHeroSchema).min(1).required()
+
+export type HeroesResponse = InferType<typeof getHeroesSchema>
+
 export interface HeroClientInterface {
     getHero(heroId: string): Promise<HeroResponse>
-    getHeroList(): Promise<any[]>
+    getHeroList(): Promise<HeroesResponse>
     getProfile(heroId: string): Promise<any>
     auth(name: string, password: string): Promise<boolean>
 }
@@ -41,16 +45,20 @@ export class HeroClient implements HeroClientInterface {
         }
     }
 
-    // TODO: vaild heroListData
-    async getHeroList(): Promise<any[]> {
-        const heroUrl: string = `https://hahow-recruit.herokuapp.com/heroes`
-        const heroResponse = await this.axiosInstance.get(heroUrl, {
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json"
-            }
-        })
-        return heroResponse.data
+    async getHeroList(): Promise<HeroesResponse> {
+        try{    
+            const heroUrl: string = `https://hahow-recruit.herokuapp.com/heroes`
+            const heroesResponse = await this.axiosInstance.get(heroUrl, {
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                }
+            })
+            const validatedResponse = await getHeroesSchema.validate(heroesResponse.data)
+            return validatedResponse
+        } catch(error: any) {
+            throw new HeroClientError(error.toString())
+        }
     }
 
     async getProfile(heroId: string): Promise<any> {

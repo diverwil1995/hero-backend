@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { HeroClientError } from '../clients/hero.client';
 
 export const errorHandler = (
     err: Error,
@@ -7,7 +8,16 @@ export const errorHandler = (
     next: NextFunction
 ) => {
     console.error(err.stack)
-    res.status(500).json({
-        message: "Unknown error occurred",
+    
+    let status = 500
+    let message = "Unknown error occurred"
+
+    if(err instanceof HeroClientError) {
+        status = 503
+        message = "Remote service unavailable"
+    }
+
+    res.status(status).json({
+        message,
     })
 }
