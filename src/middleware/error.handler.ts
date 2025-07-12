@@ -1,23 +1,23 @@
-import { Request, Response, NextFunction } from 'express';
-import { HeroClientError } from '../clients/hero.client';
+import { NextFunction, Request, Response } from "express";
+import { HeroClientError } from "../clients/hero.client";
 
 export const errorHandler = (
-    err: Error,
-    req: Request,
-    res: Response,
-    next: NextFunction
+  err: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction,
 ) => {
-    console.error(err.stack)
-    
-    let status = 500
-    let message = "Unknown error occurred"
+  console.error(err.stack);
 
-    if(err instanceof HeroClientError) {
-        status = 503
-        message = "Remote hero service unavailable"
-    }
+  let status = 500;
+  let message = "Unknown error occurred";
 
-    res.status(status).json({
-        message,
-    })
-}
+  if (err instanceof HeroClientError) {
+    status = 503;
+    message = "Remote hero service unavailable";
+  }
+
+  res.status(status).json({
+    message,
+  });
+};

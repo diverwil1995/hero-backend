@@ -1,5 +1,5 @@
-import { startServer } from './server.js';
-import app from './app.js';
+import app from "./app.js";
+import { startServer } from "./server.js";
 
 const PORT = process.env.PORT || 3000;
 
