@@ -7,8 +7,7 @@ import { authMiddleware, HeroRequest } from './middleware/auth.middleware';
 import { HeroClient } from './clients/hero.client';
 
 const app = express();
-const axiosInstance = axios.create();
-const heroClient = new HeroClient(axiosInstance)
+const heroClient = new HeroClient(axios.create())
 
 app.use(helmet());
 app.use(cors());
@@ -47,28 +46,13 @@ type ListHeroesAuthorizedResponse = {
 app.get('/heroes', authMiddleware(heroClient), async (req: HeroRequest, res) => {
     const hasPermission = req.locals?.hasPermission
     
-    const heroUrl: string = `https://hahow-recruit.herokuapp.com/heroes`
-    const heroResponse = await axiosInstance.get(heroUrl, {
-        headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json"
-        }
-    })
-    const heroData = heroResponse.data
+    const heroListData = await heroClient.getHeroList()
     
     const heroProfilePromises = []
     let heroProfileList = []
     if(hasPermission) {
-        for(const hero of heroData) {
-            const profileUrl: string = `https://hahow-recruit.herokuapp.com/heroes/${hero.id}/profile`
-            const profilePromise = axiosInstance.get(profileUrl, {
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json"
-                }
-            }).then((profileResponse)=>{
-                return profileResponse.data
-            })
+        for(const hero of heroListData) {
+            const profilePromise = heroClient.getProfile(hero.id)
             heroProfilePromises.push(profilePromise)
         }
         heroProfileList = await Promise.all(heroProfilePromises)
@@ -76,8 +60,8 @@ app.get('/heroes', authMiddleware(heroClient), async (req: HeroRequest, res) => 
     
     const heroList = []   
     if(hasPermission) {
-        for(let i=0; i< heroData.length; i++){
-            const hero = heroData[i]
+        for(let i=0; i< heroListData.length; i++){
+            const hero = heroListData[i]
             const singleHeroAuthed: SingleHeroAuthorizedResponse = {
                 id: hero.id,
                 name: hero.name,
@@ -87,7 +71,7 @@ app.get('/heroes', authMiddleware(heroClient), async (req: HeroRequest, res) => 
             heroList.push(singleHeroAuthed)
         }
     } else {
-        for(const hero of heroData) {
+        for(const hero of heroListData) {
             const singleHero: SingleHeroResponse = {
                 id: hero.id,
                 name: hero.name,
@@ -115,16 +99,8 @@ app.get('/heroes/:heroId', authMiddleware(heroClient), async (req: HeroRequest, 
     
     let profileData
     if(hasPermission){
-        const profileUrl: string = `https://hahow-recruit.herokuapp.com/heroes/${heroId}/profile`
-        const profileResponse = await axiosInstance.get(profileUrl, {
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json"
-            }
-        })
-        profileData = profileResponse.data
+        profileData = await heroClient.getProfile(heroId)
     }
-    // TODO: vaild profileData
 
     if(hasPermission) {
         const singleHeroAuthedResponse: SingleHeroAuthorizedResponse = {

@@ -3,7 +3,7 @@ import { AxiosInstance } from "axios"
 export interface HeroClientInterface {
     getHero(heroId: string): Promise<any>
     getHeroList(): Promise<any[]>
-    getProfile(): Promise<any>
+    getProfile(heroId: string): Promise<any>
     auth(name: string, password: string): Promise<boolean>
 }
 
@@ -26,12 +26,27 @@ export class HeroClient implements HeroClientInterface {
         return heroResponse.data
     }
 
+    // TODO: vaild heroListData
     async getHeroList(): Promise<any[]> {
-        return []
+        const heroUrl: string = `https://hahow-recruit.herokuapp.com/heroes`
+        const heroResponse = await this.axiosInstance.get(heroUrl, {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json"
+            }
+        })
+        return heroResponse.data
     }
 
-    async getProfile(): Promise<any> {
-
+    async getProfile(heroId: string): Promise<any> {
+        const profileUrl: string = `https://hahow-recruit.herokuapp.com/heroes/${heroId}/profile`
+        const profileResponse = await this.axiosInstance.get(profileUrl, {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json"
+            }
+        })
+        return profileResponse.data
     }
 
     async auth(name: string, password: string): Promise<boolean> {
