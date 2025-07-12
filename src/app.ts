@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import axios from 'axios';
 import { errorHandler } from './middleware/error.handler';
+import { authMiddleware, HeroRequest } from './middleware/auth.middleware';
 
 const app = express();
 const axiosInstance = axios.create();
@@ -61,7 +62,7 @@ app.get('/heroes', async (req, res) => {
 
 type SingleHeroResponse = HeroInfo
 
-app.get('/heroes/:heroId', async (req, res) => {
+app.get('/heroessss/:heroId', async (req, res) => {
     
     const heroId: string = req.params.heroId
 
@@ -101,36 +102,20 @@ app.get('/heroes/:heroId', async (req, res) => {
     }
 })
 
-type AuthData = {
-    name: string
-    password: string
+type ListHeroesAuthorizedResponse = {
+    heroes: SingleHeroAuthorizedResponse[]
 }
 
-app.get('/me/heroes', (req, res) => {
-    const authUrl: string = ``
-    const profileUrl: string = ``
-
-
-})
-
-type SingleHeroAuthedResponse = {
-    heroInfo: HeroInfo,
-    heroProfile: HeroProfile
-}
-
-// curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Name: hahow" -H "Password: rocks" -X GET http://localhost:3000/me/heroes/1
-
-app.get('/me/heroes/:heroId', async (req, res) => {
-    const heroId: string = req.params.heroId
+app.get('/me/heroes', async (req, res) => {
+    let heroId: string = ""
     const authUrl: string = `https://hahow-recruit.herokuapp.com/auth`
-    const heroUrl: string = `https://hahow-recruit.herokuapp.com/heroes/${heroId}`
+    const heroUrl: string = `https://hahow-recruit.herokuapp.com/heroes`
     const profileUrl: string = `https://hahow-recruit.herokuapp.com/heroes/${heroId}/profile`
 
-    const authData: AuthData = {
-        name: req.headers['name'] as string,
-        password: req.headers['password'] as string
+    const authData = {
+        name: req.headers.name,
+        password: req.headers.password
     }
-    console.log(authData)
 
     const authResponse = await axiosInstance.post(authUrl, authData, {
         headers: {
@@ -139,6 +124,39 @@ app.get('/me/heroes/:heroId', async (req, res) => {
     })
     const authResult = authResponse.data
 
+
+
+})
+
+type SingleHeroAuthorizedResponse = SingleHeroResponse & {
+    profile: HeroProfile
+}
+
+// curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Name: hahow" -H "Password: rocks" -X GET http://localhost:3000/me/heroes/1
+app.get('/heroes/:heroId', authMiddleware(axiosInstance), async (req: HeroRequest, res) => {
+    const heroId: string = req.params.heroId
+    const heroUrl: string = `https://hahow-recruit.herokuapp.com/heroes/${heroId}`
+    const profileUrl: string = `https://hahow-recruit.herokuapp.com/heroes/${heroId}/profile`
+
+    // const authData = {
+    //     name: req.headers.name,
+    //     password: req.headers.password
+    // }
+
+    // let hasPermission: boolean = false
+    // if(authData.name && authData.password) {
+    //     const authUrl: string = `https://hahow-recruit.herokuapp.com/auth`
+    //     const authResponse = await axiosInstance.post(authUrl, authData, {
+    //         headers: {
+    //             "Content-Type": "application/json"
+    //         }
+    //     })
+    //     const authResult = authResponse.data
+    //     hasPermission = authResult.trim() === "OK"
+    // }
+
+    const hasPermission = !!req.locals?.hasPermission
+
     const heroResponse = await axiosInstance.get(heroUrl, {
         headers: {
             Accept: "application/json",
@@ -146,28 +164,35 @@ app.get('/me/heroes/:heroId', async (req, res) => {
         }
     })
     const heroData = heroResponse.data
-
-    const profileResponse = await axiosInstance.get(profileUrl, {
-        headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json"
-        }
-    })
-    const profileData = profileResponse.data
+    // TODO: vaild heroData
     
-    if(typeof authResult === "string" || authResponse.data.trim() == "OK") {
-        const singleHeroAuthedResponse: SingleHeroAuthedResponse = {
-            heroInfo: heroData,
-            heroProfile: profileData
+    let profileData
+    if(hasPermission){
+        const profileResponse = await axiosInstance.get(profileUrl, {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json"
+            }
+        })
+        profileData = profileResponse.data
+    }
+    // TODO: vaild profileData
+
+    if(hasPermission) {
+        const singleHeroAuthedResponse: SingleHeroAuthorizedResponse = {
+            id: heroData.id,
+            name: heroData.name,
+            image: heroData.image,
+            profile: profileData
         }
-        res.json({singleHeroAuthedResponse})
+        res.json(singleHeroAuthedResponse)
     } else {
         const singleHeroResponse: SingleHeroResponse = {
             id: heroData.id,
             name: heroData.name,
             image: heroData.image
         }
-        res.json({singleHeroResponse})
+        res.json(singleHeroResponse)
     }
 })
 
