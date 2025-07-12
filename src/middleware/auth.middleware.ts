@@ -1,5 +1,6 @@
 import { Axios, AxiosInstance } from "axios"
 import { NextFunction, Request, Response } from "express"
+import { HeroClient } from "../clients/hero.client"
 
 export type HeroRequest = Request & {
     locals?: {
@@ -7,28 +8,18 @@ export type HeroRequest = Request & {
     }
 }
 
-export const authMiddleware = (axiosInstance: AxiosInstance) => {
+export const authMiddleware = (heroClient: HeroClient) => {
     return async (
         req: HeroRequest,
         res: Response,
         next: NextFunction
 ) => {
-    const authData = {
-        name: req.headers.name,
-        password: req.headers.password
-    }
+    const name = req.headers.name
+    const password = req.headers.password
 
     let hasPermission: boolean = false
-    if(authData.name && authData.password) {
-        // TODO: url params
-        const authUrl: string = `https://hahow-recruit.herokuapp.com/auth`
-        const authResponse = await axiosInstance.post(authUrl, authData, {
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
-        const authResult = authResponse.data
-        hasPermission = authResult.trim() === "OK"
+    if(typeof name === "string" && typeof password === "string") {
+        hasPermission = await heroClient.auth(name, password)
     }
     if(req.locals === undefined) {
         req.locals = {}
