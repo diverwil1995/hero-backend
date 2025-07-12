@@ -14,7 +14,7 @@ export const errorHandler = (
 
     if(err instanceof HeroClientError) {
         status = 503
-        message = "Remote service unavailable"
+        message = "Remote hero service unavailable"
     }
 
     res.status(status).json({

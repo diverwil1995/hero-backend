@@ -1,6 +1,6 @@
 import { AxiosInstance } from "axios"
 import { error } from "console";
-import { object, array, string, InferType } from 'yup';
+import { object, array, number, string, InferType } from 'yup';
 
 const getHeroSchema = object ({
     id: string().required(),
@@ -14,10 +14,19 @@ const getHeroesSchema = array().of(getHeroSchema).min(1).required()
 
 export type HeroesResponse = InferType<typeof getHeroesSchema>
 
+const getProfileSchema = object({
+    str: number().positive().integer().required(),
+    int: number().positive().integer().required(),
+    agi: number().positive().integer().required(),
+    luk: number().positive().integer().required()
+}).exact()
+
+export type ProfileResponse = InferType<typeof getProfileSchema>
+
 export interface HeroClientInterface {
     getHero(heroId: string): Promise<HeroResponse>
     getHeroList(): Promise<HeroesResponse>
-    getProfile(heroId: string): Promise<any>
+    getProfile(heroId: string): Promise<ProfileResponse>
     auth(name: string, password: string): Promise<boolean>
 }
 export class HeroClientError extends Error {}
@@ -61,15 +70,20 @@ export class HeroClient implements HeroClientInterface {
         }
     }
 
-    async getProfile(heroId: string): Promise<any> {
+    async getProfile(heroId: string): Promise<ProfileResponse> {
         const profileUrl: string = `https://hahow-recruit.herokuapp.com/heroes/${heroId}/profile`
-        const profileResponse = await this.axiosInstance.get(profileUrl, {
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json"
-            }
-        })
-        return profileResponse.data
+            try{
+            const profileResponse = await this.axiosInstance.get(profileUrl, {
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                }
+            })
+            const validatedResponse = await getProfileSchema.validate(profileResponse.data)
+            return validatedResponse
+        } catch(error: any) {
+            throw new HeroClientError(error.toString())
+        }
     }
 
     async auth(name: string, password: string): Promise<boolean> {

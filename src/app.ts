@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import axios from 'axios';
 import { errorHandler } from './middleware/error.handler';
 import { authMiddleware, HeroRequest } from './middleware/auth.middleware';
-import { HeroClient } from './clients/hero.client';
+import { HeroClient, ProfileResponse } from './clients/hero.client';
 
 const app = express();
 const heroClient = new HeroClient(axios.create())
@@ -49,7 +49,7 @@ app.get('/heroes', authMiddleware(heroClient), async (req: HeroRequest, res) => 
     const heroListData = await heroClient.getHeroList()
     
     const heroProfilePromises = []
-    let heroProfileList = []
+    let heroProfileList: ProfileResponse[] | undefined
     if(hasPermission) {
         for(const hero of heroListData) {
             const profilePromise = heroClient.getProfile(hero.id)
@@ -59,7 +59,7 @@ app.get('/heroes', authMiddleware(heroClient), async (req: HeroRequest, res) => 
     }
     
     const heroList = []   
-    if(hasPermission) {
+    if(heroProfileList) {
         for(let i=0; i< heroListData.length; i++){
             const hero = heroListData[i]
             const singleHeroAuthed: SingleHeroAuthorizedResponse = {
@@ -97,12 +97,12 @@ app.get('/heroes/:heroId', authMiddleware(heroClient), async (req: HeroRequest, 
 
     const heroData = await heroClient.getHero(heroId)
     
-    let profileData
+    let profileData: ProfileResponse | undefined
     if(hasPermission){
         profileData = await heroClient.getProfile(heroId)
     }
 
-    if(hasPermission) {
+    if(profileData) {
         const singleHeroAuthedResponse: SingleHeroAuthorizedResponse = {
             id: heroData.id,
             name: heroData.name,
