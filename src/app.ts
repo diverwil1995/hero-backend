@@ -33,14 +33,8 @@ type HeroProfile = {
   luk: number;
 };
 
-type ListHeroesResponse = {
-  heroes: HeroInfo[];
-};
-
-type SingleHeroResponse = HeroInfo;
-
-type ListHeroesAuthorizedResponse = {
-  heroes: SingleHeroAuthorizedResponse[];
+type AuthorizedHero = HeroInfo & {
+  profile: HeroProfile;
 };
 
 // TODO 打包成 Router 並放在 controller
@@ -51,49 +45,45 @@ app.get(
   async (req: HeroRequest, res) => {
     const hasPermission = req.locals?.hasPermission;
 
-    const heroListData = await heroClient.getHeroList();
+    const heroes = await heroClient.getHeroList();
 
-    const heroProfilePromises = [];
-    let heroProfileList: ProfileResponse[] | undefined;
+    const profilePromises = [];
+    let profiles: ProfileResponse[] | undefined;
     if (hasPermission) {
-      for (const hero of heroListData) {
+      for (const hero of heroes) {
         const profilePromise = heroClient.getProfile(hero.id);
-        heroProfilePromises.push(profilePromise);
+        profilePromises.push(profilePromise);
       }
-      heroProfileList = await Promise.all(heroProfilePromises);
+      profiles = await Promise.all(profilePromises);
     }
 
-    const heroList = [];
-    if (heroProfileList) {
-      for (let i = 0; i < heroListData.length; i++) {
-        const hero = heroListData[i];
-        const singleHeroAuthed: SingleHeroAuthorizedResponse = {
+    const heroResult = [];
+    if (profiles) {
+      for (let i = 0; i < heroes.length; i++) {
+        const hero = heroes[i];
+        const heroWithProfile: AuthorizedHero = {
           id: hero.id,
           name: hero.name,
           image: hero.image,
-          profile: heroProfileList[i],
+          profile: profiles[i],
         };
-        heroList.push(singleHeroAuthed);
+        heroResult.push(heroWithProfile);
       }
     } else {
-      for (const hero of heroListData) {
-        const singleHero: SingleHeroResponse = {
+      for (const hero of heroes) {
+        const basicHero: HeroInfo = {
           id: hero.id,
           name: hero.name,
           image: hero.image,
         };
-        heroList.push(singleHero);
+        heroResult.push(basicHero);
       }
     }
     res.json({
-      heroes: heroList,
+      heroes: heroResult,
     });
   },
 );
-
-type SingleHeroAuthorizedResponse = SingleHeroResponse & {
-  profile: HeroProfile;
-};
 
 // TODO 打包成 Router 並放在 controller
 // // curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Name: hahow" -H "Password: rocks" -X GET http://localhost:3000/me/heroes/1
@@ -105,28 +95,28 @@ app.get(
 
     const hasPermission = req.locals?.hasPermission;
 
-    const heroData = await heroClient.getHero(heroId);
+    const hero = await heroClient.getHero(heroId);
 
-    let profileData: ProfileResponse | undefined;
+    let profile: ProfileResponse | undefined;
     if (hasPermission) {
-      profileData = await heroClient.getProfile(heroId);
+      profile = await heroClient.getProfile(heroId);
     }
 
-    if (profileData) {
-      const singleHeroAuthedResponse: SingleHeroAuthorizedResponse = {
-        id: heroData.id,
-        name: heroData.name,
-        image: heroData.image,
-        profile: profileData,
+    if (profile) {
+      const heroResult: AuthorizedHero = {
+        id: hero.id,
+        name: hero.name,
+        image: hero.image,
+        profile: profile,
       };
-      res.json(singleHeroAuthedResponse);
+      res.json(heroResult);
     } else {
-      const singleHeroResponse: SingleHeroResponse = {
-        id: heroData.id,
-        name: heroData.name,
-        image: heroData.image,
+      const heroResult: HeroInfo = {
+        id: hero.id,
+        name: hero.name,
+        image: hero.image,
       };
-      res.json(singleHeroResponse);
+      res.json(heroResult);
     }
   },
 );
