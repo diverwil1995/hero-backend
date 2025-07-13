@@ -32,14 +32,16 @@ export class HeroClientError extends Error {}
 
 export class HeroClient implements HeroClientInterface {
   private axiosInstance: AxiosInstance;
+  private baseUrl: string
 
-  constructor(axiosInstance: AxiosInstance) {
+  constructor(axiosInstance: AxiosInstance, baseUrl: string = 'https://hahow-recruit.herokuapp.com') {
     this.axiosInstance = axiosInstance;
+    this.baseUrl = baseUrl
   }
 
   async getHero(heroId: string): Promise<HeroResponse> {
     // TODO: 將 url 寫入 constructor
-    const heroUrl: string = `https://hahow-recruit.herokuapp.com/heroes/${heroId}`;
+    const heroUrl: string = `${this.baseUrl}/heroes/${heroId}`;
     try {
       const heroResponse = await this.axiosInstance.get(heroUrl, {
         headers: {
@@ -57,7 +59,7 @@ export class HeroClient implements HeroClientInterface {
   async getHeroList(): Promise<HeroesResponse> {
     try {
       // TODO: 將 url 寫入 constructor
-      const heroUrl: string = `https://hahow-recruit.herokuapp.com/heroes`;
+      const heroUrl: string = `${this.baseUrl}/heroes`;
       const heroesResponse = await this.axiosInstance.get(heroUrl, {
         headers: {
           Accept: "application/json",
@@ -74,7 +76,7 @@ export class HeroClient implements HeroClientInterface {
   }
 
   async getProfile(heroId: string): Promise<ProfileResponse> {
-    const profileUrl: string = `https://hahow-recruit.herokuapp.com/heroes/${heroId}/profile`;
+    const profileUrl: string = `${this.baseUrl}/heroes/${heroId}/profile`;
     try {
       const profileResponse = await this.axiosInstance.get(profileUrl, {
         headers: {
@@ -93,7 +95,7 @@ export class HeroClient implements HeroClientInterface {
 
   async auth(name: string, password: string): Promise<boolean> {
     const authData = { name, password };
-    const authUrl = `https://hahow-recruit.herokuapp.com/auth`;
+    const authUrl = `${this.baseUrl}/auth`;
     try {
       const authResponse = await this.axiosInstance.post(authUrl, authData, {
         headers: {
