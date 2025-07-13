@@ -3,11 +3,13 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import { HeroClient, ProfileResponse } from "./clients/hero.client";
+import { HeroController, HeroControllerInterface } from "./controllers/hero.controller";
 import { authMiddleware, HeroRequest } from "./middleware/auth.middleware";
 import { errorHandler } from "./middleware/error.handler";
 
 const app = express();
 const heroClient = new HeroClient(axios.create());
+const heroController: HeroControllerInterface = new HeroController(heroClient);
 
 app.use(helmet());
 app.use(cors());
@@ -37,52 +39,10 @@ type AuthorizedHero = HeroInfo & {
   profile: HeroProfile;
 };
 
-// TODO 打包成 Router 並放在 controller
-// 測試
 app.get(
   "/heroes",
   authMiddleware(heroClient),
-  async (req: HeroRequest, res) => {
-    const hasPermission = req.locals?.hasPermission;
-
-    const heroes = await heroClient.getHeroList();
-
-    const profilePromises = [];
-    let profiles: ProfileResponse[] | undefined;
-    if (hasPermission) {
-      for (const hero of heroes) {
-        const profilePromise = heroClient.getProfile(hero.id);
-        profilePromises.push(profilePromise);
-      }
-      profiles = await Promise.all(profilePromises);
-    }
-
-    const heroResult = [];
-    if (profiles) {
-      for (let i = 0; i < heroes.length; i++) {
-        const hero = heroes[i];
-        const heroWithProfile: AuthorizedHero = {
-          id: hero.id,
-          name: hero.name,
-          image: hero.image,
-          profile: profiles[i],
-        };
-        heroResult.push(heroWithProfile);
-      }
-    } else {
-      for (const hero of heroes) {
-        const basicHero: HeroInfo = {
-          id: hero.id,
-          name: hero.name,
-          image: hero.image,
-        };
-        heroResult.push(basicHero);
-      }
-    }
-    res.json({
-      heroes: heroResult,
-    });
-  },
+  (req, res) => heroController.getHeroes(req, res)
 );
 
 // TODO 打包成 Router 並放在 controller
