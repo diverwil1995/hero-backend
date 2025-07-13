@@ -18,10 +18,10 @@ type HeroProfile = {
 type AuthorizedHero = HeroInfo & {
     profile: HeroProfile;
 };
-  
+
 export interface HeroControllerInterface {
-    getHeroes(req: HeroRequest, res: Response): any
-    getHeroById(): any
+    getHeroes(req: HeroRequest, res: Response): Promise<void>
+    getHeroById(req: HeroRequest, res: Response): Promise<void>
 }
 
 export class HeroController implements HeroControllerInterface {
@@ -70,8 +70,34 @@ export class HeroController implements HeroControllerInterface {
         
     }
 
-    async getHeroById() {
-
+    async getHeroById(req: HeroRequest , res: Response) {
+        const heroId: string = req.params.heroId;
+    
+        const hasPermission = req.locals?.hasPermission;
+    
+        const hero = await this.heroClient.getHero(heroId);
+    
+        let profile: ProfileResponse | undefined;
+        if (hasPermission) {
+          profile = await this.heroClient.getProfile(heroId);
+        }
+    
+        if (profile) {
+          const heroResult: AuthorizedHero = {
+            id: hero.id,
+            name: hero.name,
+            image: hero.image,
+            profile: profile,
+          };
+          res.json(heroResult);
+        } else {
+          const heroResult: HeroInfo = {
+            id: hero.id,
+            name: hero.name,
+            image: hero.image,
+          };
+          res.json(heroResult);
+        }
     }
 }
 
