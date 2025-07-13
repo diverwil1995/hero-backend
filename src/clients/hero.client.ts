@@ -34,7 +34,7 @@ export class HeroClient implements HeroClientInterface {
   private axiosInstance: AxiosInstance;
   private baseUrl: string
 
-  constructor(axiosInstance: AxiosInstance, baseUrl: string = 'https://hahow-recruit.herokuapp.com') {
+  constructor(axiosInstance: AxiosInstance, baseUrl: string) {
     this.axiosInstance = axiosInstance;
     this.baseUrl = baseUrl
   }

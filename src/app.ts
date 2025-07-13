@@ -1,5 +1,6 @@
 import axios from "axios";
 import cors from "cors";
+import 'dotenv/config';
 import express from "express";
 import helmet from "helmet";
 import { HeroClient } from "./clients/hero.client";
@@ -8,7 +9,11 @@ import { authMiddleware } from "./middleware/auth.middleware";
 import { errorHandler } from "./middleware/error.handler";
 
 const app = express();
-const heroClient = new HeroClient(axios.create());
+const heroBaseUrl = process.env.HERO_API_BASE_URL
+if(!heroBaseUrl) {
+  throw new Error('HERO_API_BASE_URL environment variable is required')
+}
+const heroClient = new HeroClient(axios.create(), heroBaseUrl);
 const heroController: HeroControllerInterface = new HeroController(heroClient);
 
 app.use(helmet());
