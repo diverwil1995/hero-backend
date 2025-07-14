@@ -111,6 +111,52 @@ describe('HeroClient - 方法測試', () => {
     });
   })
 
+  describe('取得單一 Hero 功能測試', () => {
+    it('正確的 heroId 應該回傳 hero 資料', async () => {
+      const heroId = '1';
+      const expectedHeroData = {
+        id: "1",
+        name: "Daredevil",
+        image: "https://i.annihil.us/u/prod/marvel/i/mg/6/90/537ba6d49472b/standard_xlarge.jpg"
+      };
+      
+      mockAxios.onGet(`${baseUrl}/heroes/${heroId}`).reply(200, expectedHeroData);
+  
+      const result = await heroClient.getHero(heroId);
+  
+      expect(result).toEqual(expectedHeroData);
+  
+      expect(mockAxios.history.get).toHaveLength(1);
+      expect(mockAxios.history.get[0].url).toBe(`${baseUrl}/heroes/${heroId}`);
+    });
+
+    it('不存在的 heroId 應該拋出 HeroClientError (404)', async () => {
+      const nonExistentHeroId = '999';
+      
+      mockAxios.onGet(`${baseUrl}/heroes/${nonExistentHeroId}`).reply(404, { error: 'Hero not found' });
+  
+      await expect(heroClient.getHero(nonExistentHeroId)).rejects.toThrow(HeroClientError);
+  
+      expect(mockAxios.history.get).toHaveLength(1);
+      expect(mockAxios.history.get[0].url).toBe(`${baseUrl}/heroes/${nonExistentHeroId}`);
+    });
+  
+    it('缺少必要欄位應該拋出 HeroClientError', async () => {
+      const heroId = '1';
+      const incompleteHeroData = {
+        id: "1",
+        name: "Daredevil"
+      };
+      
+      mockAxios.onGet(`${baseUrl}/heroes/${heroId}`).reply(200, incompleteHeroData);
+
+      await expect(heroClient.getHero(heroId)).rejects.toThrow(HeroClientError);
+
+      expect(mockAxios.history.get).toHaveLength(1);
+      expect(mockAxios.history.get[0].url).toBe(`${baseUrl}/heroes/${heroId}`);
+    });
+  })
+
   describe('取得 Hero 列表功能測試', ()=> {
     it('應該回傳有效的 heroes 陣列', async () => {
       const expectedHeroesData = [
@@ -182,7 +228,5 @@ describe('HeroClient - 方法測試', () => {
       expect(mockAxios.history.get).toHaveLength(1);
       expect(mockAxios.history.get[0].url).toBe(`${baseUrl}/heroes`);
     });
-  
   })
-
 });
