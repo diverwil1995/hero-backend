@@ -22,9 +22,9 @@ const getProfileSchema = object({
 
 export type ProfileResponse = InferType<typeof getProfileSchema>;
 
-const getAuthDataSchema = string().required()
+const getAuthDataSchema = string().required();
 
-export type authResponse = InferType<typeof getAuthDataSchema>
+export type authResponse = InferType<typeof getAuthDataSchema>;
 
 export interface HeroClientInterface {
   getHero(heroId: string): Promise<HeroResponse>;
@@ -36,11 +36,11 @@ export class HeroClientError extends Error {}
 
 export class HeroClient implements HeroClientInterface {
   private axiosInstance: AxiosInstance;
-  private baseUrl: string
+  private baseUrl: string;
 
   constructor(axiosInstance: AxiosInstance, baseUrl: string) {
     this.axiosInstance = axiosInstance;
-    this.baseUrl = baseUrl
+    this.baseUrl = baseUrl;
   }
 
   async getHero(heroId: string): Promise<HeroResponse> {
@@ -106,14 +106,16 @@ export class HeroClient implements HeroClientInterface {
           "Content-Type": "application/json",
         },
       });
-      const validatedResponse = await getAuthDataSchema.validate(authResponse.data)
-      
-      return validatedResponse === "OK"
-    } catch(error: any) {
-      if(error?.response?.status === 401) {
-        return false
+      const validatedResponse = await getAuthDataSchema.validate(
+        authResponse.data,
+      );
+
+      return validatedResponse === "OK";
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+        return false;
       }
-      throw new HeroClientError(error.toString())
+      throw new HeroClientError(error.toString());
     }
   }
 }

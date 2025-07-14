@@ -4,14 +4,13 @@ import express, { Application } from "express";
 import helmet from "helmet";
 import { HeroClient } from "./clients/hero.client";
 import { Config } from "./config";
-import { HeroController, HeroControllerInterface } from "./controllers/hero.controller";
-import { authMiddleware } from "./middleware/auth.middleware";
+import { createRouter } from "./controllers/hero.controller";
 import { errorHandler } from "./middleware/error.handler";
 
 export function createApp(config: Config): Application {
   const app = express();
   const heroClient = new HeroClient(axios.create(), config.heroApiBaseUrl);
-  const heroController: HeroControllerInterface = new HeroController(heroClient);
+  const heroRouter = createRouter(heroClient);
 
   app.use(helmet());
   app.use(cors());
@@ -24,18 +23,7 @@ export function createApp(config: Config): Application {
     });
   });
 
-  app.get(
-    "/heroes",
-    authMiddleware(heroClient),
-    (req, res) => heroController.getHeroes(req, res)
-  );
-
-  // // curl -H "Accept: application/json" -H "Content-Type: application/json" -H "Name: hahow" -H "Password: rocks" -X GET http://localhost:3000/heroes/1
-  app.get(
-    "/heroes/:heroId",
-    authMiddleware(heroClient),
-    (req, res) => heroController.getHeroById(req, res),
-  );
+  app.use("/heroes", heroRouter);
 
   app.use((req, res) => {
     res.status(404).json({
@@ -46,5 +34,5 @@ export function createApp(config: Config): Application {
 
   app.use(errorHandler);
 
-  return app
+  return app;
 }

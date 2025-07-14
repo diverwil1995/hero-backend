@@ -1,103 +1,106 @@
-import { Response } from "express";
+import express, { Response } from "express";
 import { HeroClient, ProfileResponse } from "../clients/hero.client";
-import { HeroRequest } from "../middleware/auth.middleware";
+import { authMiddleware, HeroRequest } from "../middleware/auth.middleware";
 
 type HeroInfo = {
-    id: string;
-    name: string;
-    image: string;
+  id: string;
+  name: string;
+  image: string;
 };
-  
+
 type HeroProfile = {
-    str: number;
-    int: number;
-    agi: number;
-    luk: number;
+  str: number;
+  int: number;
+  agi: number;
+  luk: number;
 };
-  
+
 type AuthorizedHero = HeroInfo & {
-    profile: HeroProfile;
+  profile: HeroProfile;
 };
 
-export interface HeroControllerInterface {
-    getHeroes(req: HeroRequest, res: Response): Promise<void>
-    getHeroById(req: HeroRequest, res: Response): Promise<void>
-}
+export function createRouter(heroClient: HeroClient) {
+  const router = express.Router();
 
-export class HeroController implements HeroControllerInterface {
-    constructor(private heroClient: HeroClient) {}
+  router.get(
+    "/",
+    authMiddleware(heroClient),
+    async (req: HeroRequest, res: Response) => {
+      const hasPermission = req.locals?.hasPermission;
 
-    async getHeroes(req: HeroRequest, res: Response) {
-        const hasPermission = req.locals?.hasPermission;
-    
-        const heroes = await this.heroClient.getHeroList();
-    
-        const profilePromises = [];
-        let profiles: ProfileResponse[] | undefined;
-        if (hasPermission) {
-            for (const hero of heroes) {
-            const profilePromise = this.heroClient.getProfile(hero.id);
-            profilePromises.push(profilePromise);
-            }
-            profiles = await Promise.all(profilePromises);
-        }
-    
-        const heroResult = [];
-        if (profiles) {
-            for (let i = 0; i < heroes.length; i++) {
-            const hero = heroes[i];
-            const heroWithProfile: AuthorizedHero = {
-                id: hero.id,
-                name: hero.name,
-                image: hero.image,
-                profile: profiles[i],
-            };
-            heroResult.push(heroWithProfile);
-            }
-        } else {
-            for (const hero of heroes) {
-            const basicHero: HeroInfo = {
-                id: hero.id,
-                name: hero.name,
-                image: hero.image,
-            };
-            heroResult.push(basicHero);
-            }
-        }
-        res.json({
-            heroes: heroResult,
-        });
-        
-    }
+      const heroes = await heroClient.getHeroList();
 
-    async getHeroById(req: HeroRequest , res: Response) {
-        const heroId: string = req.params.heroId;
-    
-        const hasPermission = req.locals?.hasPermission;
-    
-        const hero = await this.heroClient.getHero(heroId);
-    
-        let profile: ProfileResponse | undefined;
-        if (hasPermission) {
-          profile = await this.heroClient.getProfile(heroId);
+      const profilePromises = [];
+      let profiles: ProfileResponse[] | undefined;
+      if (hasPermission) {
+        for (const hero of heroes) {
+          const profilePromise = heroClient.getProfile(hero.id);
+          profilePromises.push(profilePromise);
         }
-    
-        if (profile) {
-          const heroResult: AuthorizedHero = {
+        profiles = await Promise.all(profilePromises);
+      }
+
+      const heroResult = [];
+      if (profiles) {
+        for (let i = 0; i < heroes.length; i++) {
+          const hero = heroes[i];
+          const heroWithProfile: AuthorizedHero = {
             id: hero.id,
             name: hero.name,
             image: hero.image,
-            profile: profile,
+            profile: profiles[i],
           };
-          res.json(heroResult);
-        } else {
-          const heroResult: HeroInfo = {
+          heroResult.push(heroWithProfile);
+        }
+      } else {
+        for (const hero of heroes) {
+          const basicHero: HeroInfo = {
             id: hero.id,
             name: hero.name,
             image: hero.image,
           };
-          res.json(heroResult);
+          heroResult.push(basicHero);
         }
-    }
-}
+      }
+      res.json({
+        heroes: heroResult,
+      });
+    },
+  );
 
+  router.get(
+    "/:heroId",
+    authMiddleware(heroClient),
+    async (req: HeroRequest, res: Response) => {
+      const heroId: string = req.params.heroId;
+
+      const hasPermission = req.locals?.hasPermission;
+
+      const hero = await heroClient.getHero(heroId);
+
+      let profile: ProfileResponse | undefined;
+      if (hasPermission) {
+        profile = await heroClient.getProfile(heroId);
+      }
+
+      if (profile) {
+        const heroResult: AuthorizedHero = {
+          id: hero.id,
+          name: hero.name,
+          image: hero.image,
+          profile: profile,
+        };
+        res.json(heroResult);
+      } else {
+        const heroResult: HeroInfo = {
+          id: hero.id,
+          name: hero.name,
+          image: hero.image,
+        };
+        res.json(heroResult);
+      }
+    },
+  );
+
+  return router;
+}
