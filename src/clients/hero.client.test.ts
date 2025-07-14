@@ -1,11 +1,11 @@
 import axios from "axios";
 import MockAdapter from "axios-mock-adapter";
-import { HeroClient, HeroClientError } from "./hero.client";
+import { HeroClient, HeroClientError, HeroClientNotFoundError } from "./hero.client";
 
 describe("HeroClient - 方法測試", () => {
   let heroClient: HeroClient;
   let mockAxios: MockAdapter;
-  const baseUrl = "https://hahow-recruit.herokuapp.com";
+  const baseUrl = "https://test";
 
   beforeEach(() => {
     const axiosInstance = axios.create();
@@ -67,7 +67,8 @@ describe("HeroClient - 方法測試", () => {
       mockAxios
         .onPost(`${baseUrl}/auth`, expectedRequestData)
         .reply(200, { code: 1000, message: "Backend Error" });
-      expect(heroClient.auth(correctName, correctPassword)).rejects.toThrow(
+
+      await expect(heroClient.auth(correctName, correctPassword)).rejects.toThrow(
         HeroClientError,
       );
 
@@ -100,7 +101,7 @@ describe("HeroClient - 方法測試", () => {
       );
     });
 
-    it("不存在的 heroId 應該拋出 HeroClientError (404)", async () => {
+    it("不存在的 heroId 應該拋出 HeroClientNotFoundError (404)", async () => {
       const nonExistentHeroId = "999";
 
       mockAxios
@@ -108,7 +109,7 @@ describe("HeroClient - 方法測試", () => {
         .reply(404, { error: "Hero not found" });
 
       await expect(heroClient.getProfile(nonExistentHeroId)).rejects.toThrow(
-        HeroClientError,
+        HeroClientNotFoundError,
       );
 
       expect(mockAxios.history.get).toHaveLength(1);
@@ -163,7 +164,7 @@ describe("HeroClient - 方法測試", () => {
       expect(mockAxios.history.get[0].url).toBe(`${baseUrl}/heroes/${heroId}`);
     });
 
-    it("不存在的 heroId 應該拋出 HeroClientError (404)", async () => {
+    it("不存在的 heroId 應該拋出 HeroClientNotFoundError (404)", async () => {
       const nonExistentHeroId = "999";
 
       mockAxios
@@ -171,7 +172,7 @@ describe("HeroClient - 方法測試", () => {
         .reply(404, { error: "Hero not found" });
 
       await expect(heroClient.getHero(nonExistentHeroId)).rejects.toThrow(
-        HeroClientError,
+        HeroClientNotFoundError,
       );
 
       expect(mockAxios.history.get).toHaveLength(1);

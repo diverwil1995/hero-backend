@@ -1,5 +1,5 @@
-import { AxiosError, AxiosInstance } from "axios";
-import { array, InferType, number, object, string, ValidationError } from "yup";
+import { AxiosInstance } from "axios";
+import { array, InferType, number, object, string } from "yup";
 
 const getHeroSchema = object({
   id: string().required(),
@@ -34,6 +34,8 @@ export interface HeroClientInterface {
 }
 export class HeroClientError extends Error {}
 
+export class HeroClientNotFoundError extends Error {}
+
 export class HeroClient implements HeroClientInterface {
   private axiosInstance: AxiosInstance;
   private baseUrl: string;
@@ -56,6 +58,9 @@ export class HeroClient implements HeroClientInterface {
       const validatedResponse = await getHeroSchema.validate(heroResponse.data);
       return validatedResponse;
     } catch (error: any) {
+      if (error?.response?.status === 404) {
+        throw new HeroClientNotFoundError(error.toString())
+      }
       throw new HeroClientError(error.toString());
     }
   }
@@ -93,6 +98,9 @@ export class HeroClient implements HeroClientInterface {
       );
       return validatedResponse;
     } catch (error: any) {
+      if (error?.response?.status === 404) {
+        throw new HeroClientNotFoundError(error.toString())
+      }
       throw new HeroClientError(error.toString());
     }
   }
