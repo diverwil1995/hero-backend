@@ -2,10 +2,10 @@ import axios from "axios";
 import cors from "cors";
 import express, { Application } from "express";
 import helmet from "helmet";
-import { HeroClient } from "./clients/hero.client";
+import { HeroClient } from "./clients/hero.client.js";
 import { Config } from "./config";
-import { createRouter } from "./controllers/hero.controller";
-import { errorHandler } from "./middleware/error.handler";
+import { createRouter } from "./controllers/hero.controller.js";
+import { errorHandler } from "./middleware/error.handler.js";
 
 export function createApp(config: Config): Application {
   const app = express();

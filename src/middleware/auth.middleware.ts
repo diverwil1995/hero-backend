@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { HeroClient } from "../clients/hero.client";
+import { HeroClient } from "../clients/hero.client.js";
 
 export type HeroRequest = Request & {
   locals?: {

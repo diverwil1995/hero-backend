@@ -1,6 +1,6 @@
 import express, { Response } from "express";
-import { HeroClient, ProfileResponse } from "../clients/hero.client";
-import { authMiddleware, HeroRequest } from "../middleware/auth.middleware";
+import { HeroClient, ProfileResponse } from "../clients/hero.client.js";
+import { authMiddleware, HeroRequest } from "../middleware/auth.middleware.js";
 
 type HeroInfo = {
   id: string;

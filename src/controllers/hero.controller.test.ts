@@ -2,8 +2,8 @@ import axios from "axios";
 import MockAdapter from "axios-mock-adapter";
 import express, { Application } from "express";
 import request from "supertest";
-import { HeroClient } from "../clients/hero.client";
-import { createRouter } from "./hero.controller";
+import { HeroClient } from "../clients/hero.client.js";
+import { createRouter } from "./hero.controller.js";
 
 describe("heroController - 測試", () => {
   let app: Application;

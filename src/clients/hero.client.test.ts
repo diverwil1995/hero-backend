@@ -4,7 +4,7 @@ import {
   HeroClient,
   HeroClientError,
   HeroClientNotFoundError,
-} from "./hero.client";
+} from "./hero.client.js";
 
 describe("HeroClient - 測試", () => {
   let heroClient: HeroClient;
