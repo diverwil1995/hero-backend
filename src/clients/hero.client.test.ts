@@ -2,7 +2,7 @@ import axios from "axios";
 import MockAdapter from "axios-mock-adapter";
 import { HeroClient, HeroClientError, HeroClientNotFoundError } from "./hero.client";
 
-describe("HeroClient - 方法測試", () => {
+describe("HeroClient - 測試", () => {
   let heroClient: HeroClient;
   let mockAxios: MockAdapter;
   const baseUrl = "https://test";
@@ -11,10 +11,6 @@ describe("HeroClient - 方法測試", () => {
     const axiosInstance = axios.create();
     mockAxios = new MockAdapter(axiosInstance);
     heroClient = new HeroClient(axiosInstance, baseUrl);
-  });
-
-  afterEach(() => {
-    mockAxios.reset();
   });
 
   describe("認證功能測試", () => {
