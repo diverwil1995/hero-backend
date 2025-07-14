@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { HeroClientError } from "../clients/hero.client";
+import { HeroClientError, HeroClientNotFoundError } from "../clients/hero.client.js";
 
 export const errorHandler = (
   err: Error,
@@ -15,6 +15,11 @@ export const errorHandler = (
   if (err instanceof HeroClientError) {
     status = 502;
     message = "Remote hero service unavailable";
+  }
+
+  if (err instanceof HeroClientNotFoundError) {
+    status = 404;
+    message = "Hero not found";
   }
 
   res.status(status).json({
