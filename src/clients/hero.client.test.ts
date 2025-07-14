@@ -61,4 +61,53 @@ describe('HeroClient - auth() 方法測試', () => {
       expect(mockAxios.history.post[0].url).toBe(`${baseUrl}/auth`);
     })
   });
+
+  describe('取得 Profile 功能測試', () => {
+    it('正確的 heroId 應該回傳 profile 資料', async () => {
+      const heroId = '1';
+      const expectedProfileData = {
+        str: 2,
+        int: 7,
+        agi: 9,
+        luk: 7
+      };
+      
+      mockAxios.onGet(`${baseUrl}/heroes/${heroId}/profile`).reply(200, expectedProfileData);
+  
+      const result = await heroClient.getProfile(heroId);
+  
+      expect(result).toEqual(expectedProfileData);
+  
+      expect(mockAxios.history.get).toHaveLength(1);
+      expect(mockAxios.history.get[0].url).toBe(`${baseUrl}/heroes/${heroId}/profile`);
+    });
+
+    it('不存在的 heroId 應該拋出 HeroClientError (404)', async () => {
+      const nonExistentHeroId = '999';
+      
+      mockAxios.onGet(`${baseUrl}/heroes/${nonExistentHeroId}/profile`).reply(404, { error: 'Hero not found' });
+  
+      await expect(heroClient.getProfile(nonExistentHeroId)).rejects.toThrow(HeroClientError);
+  
+      expect(mockAxios.history.get).toHaveLength(1);
+      expect(mockAxios.history.get[0].url).toBe(`${baseUrl}/heroes/${nonExistentHeroId}/profile`);
+    });
+
+    it('上游回傳無效格式應該拋出 HeroClientError', async () => {
+      const heroId = '1';
+      const invalidProfileData = {
+        str: undefined,
+        int: 7,
+        agi: 9,
+        luk: 7
+      };
+      
+      mockAxios.onGet(`${baseUrl}/heroes/${heroId}/profile`).reply(200, invalidProfileData);
+
+      await expect(heroClient.getProfile(heroId)).rejects.toThrow(HeroClientError);
+
+      expect(mockAxios.history.get).toHaveLength(1);
+      expect(mockAxios.history.get[0].url).toBe(`${baseUrl}/heroes/${heroId}/profile`);
+    });
+  })
 });
