@@ -1,5 +1,5 @@
-import { AxiosInstance } from "axios";
-import { array, InferType, number, object, string } from "yup";
+import { AxiosError, AxiosInstance } from "axios";
+import { array, InferType, number, object, string, ValidationError } from "yup";
 
 const getHeroSchema = object({
   id: string().required(),
@@ -21,6 +21,10 @@ const getProfileSchema = object({
 }).exact();
 
 export type ProfileResponse = InferType<typeof getProfileSchema>;
+
+const getAuthDataSchema = string().required()
+
+export type authResponse = InferType<typeof getAuthDataSchema>
 
 export interface HeroClientInterface {
   getHero(heroId: string): Promise<HeroResponse>;
@@ -102,10 +106,14 @@ export class HeroClient implements HeroClientInterface {
           "Content-Type": "application/json",
         },
       });
-      const authResult = authResponse.data;
-      return authResult.trim() === "OK";
-    } catch {
-      return false;
+      const validatedResponse = await getAuthDataSchema.validate(authResponse.data)
+      
+      return validatedResponse === "OK"
+    } catch(error: any) {
+      if(error?.response?.status === 401) {
+        return false
+      }
+      throw new HeroClientError(error.toString())
     }
   }
 }
