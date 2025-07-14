@@ -1,6 +1,10 @@
 import axios from "axios";
 import MockAdapter from "axios-mock-adapter";
-import { HeroClient, HeroClientError, HeroClientNotFoundError } from "./hero.client";
+import {
+  HeroClient,
+  HeroClientError,
+  HeroClientNotFoundError,
+} from "./hero.client";
 
 describe("HeroClient - 測試", () => {
   let heroClient: HeroClient;
@@ -64,9 +68,9 @@ describe("HeroClient - 測試", () => {
         .onPost(`${baseUrl}/auth`, expectedRequestData)
         .reply(200, { code: 1000, message: "Backend Error" });
 
-      await expect(heroClient.auth(correctName, correctPassword)).rejects.toThrow(
-        HeroClientError,
-      );
+      await expect(
+        heroClient.auth(correctName, correctPassword),
+      ).rejects.toThrow(HeroClientError);
 
       expect(mockAxios.history.post).toHaveLength(1);
       expect(mockAxios.history.post[0].url).toBe(`${baseUrl}/auth`);

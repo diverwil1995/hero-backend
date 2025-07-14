@@ -59,7 +59,7 @@ export class HeroClient implements HeroClientInterface {
       return validatedResponse;
     } catch (error: any) {
       if (error?.response?.status === 404) {
-        throw new HeroClientNotFoundError(error.toString())
+        throw new HeroClientNotFoundError(error.toString());
       }
       throw new HeroClientError(error.toString());
     }
@@ -99,7 +99,7 @@ export class HeroClient implements HeroClientInterface {
       return validatedResponse;
     } catch (error: any) {
       if (error?.response?.status === 404) {
-        throw new HeroClientNotFoundError(error.toString())
+        throw new HeroClientNotFoundError(error.toString());
       }
       throw new HeroClientError(error.toString());
     }
