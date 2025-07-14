@@ -13,11 +13,12 @@ export const errorHandler = (
   let message = "Unknown error occurred";
 
   if (err instanceof HeroClientError) {
-    status = 503;
+    status = 502;
     message = "Remote hero service unavailable";
   }
 
   res.status(status).json({
+    status,
     message,
   });
 };
