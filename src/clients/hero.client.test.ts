@@ -2,7 +2,7 @@ import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import { HeroClient, HeroClientError } from './hero.client';
 
-describe('HeroClient - auth() 方法測試', () => {
+describe('HeroClient - 方法測試', () => {
   let heroClient: HeroClient;
   let mockAxios: MockAdapter;
   const baseUrl = 'https://hahow-recruit.herokuapp.com';
@@ -110,4 +110,79 @@ describe('HeroClient - auth() 方法測試', () => {
       expect(mockAxios.history.get[0].url).toBe(`${baseUrl}/heroes/${heroId}/profile`);
     });
   })
+
+  describe('取得 Hero 列表功能測試', ()=> {
+    it('應該回傳有效的 heroes 陣列', async () => {
+      const expectedHeroesData = [
+        {
+          id: "1",
+          name: "Daredevil",
+          image: "https://i.annihil.us/u/prod/marvel/i/mg/6/90/537ba6d49472b/standard_xlarge.jpg"
+        },
+        {
+          id: "2", 
+          name: "Thor",
+          image: "https://i.annihil.us/u/prod/marvel/i/mg/5/a0/537bc7036ab02/standard_xlarge.jpg"
+        },
+        {
+          id: "3",
+          name: "Iron Man",
+          image: "https://i.annihil.us/u/prod/marvel/i/mg/6/a0/55b6a25e654e6/standard_xlarge.jpg"
+        }
+      ];
+      
+      mockAxios.onGet(`${baseUrl}/heroes`).reply(200, expectedHeroesData);
+  
+      const result = await heroClient.getHeroList();
+  
+      expect(result).toEqual(expectedHeroesData);
+      expect(result).toHaveLength(3);
+  
+      expect(mockAxios.history.get).toHaveLength(1);
+      expect(mockAxios.history.get[0].url).toBe(`${baseUrl}/heroes`);
+    });
+
+    it('缺少必要欄位應該拋出 HeroClientError', async () => {
+      const incompleteHeroesData = [
+        {
+          id: "1",
+          name: "Daredevil"
+          // 缺少 image 欄位
+        },
+        {
+          id: "2",
+          name: "Thor",
+          image: "https://i.annihil.us/u/prod/marvel/i/mg/5/a0/537bc7036ab02/standard_xlarge.jpg"
+        }
+      ];
+      
+      mockAxios.onGet(`${baseUrl}/heroes`).reply(200, incompleteHeroesData);
+  
+      await expect(heroClient.getHeroList()).rejects.toThrow(HeroClientError);
+  
+      expect(mockAxios.history.get).toHaveLength(1);
+      expect(mockAxios.history.get[0].url).toBe(`${baseUrl}/heroes`);
+    });
+  
+    it('非陣列格式應該拋出 HeroClientError', async () => {
+      const invalidFormatData = {
+        heroes: [
+          {
+            id: "1",
+            name: "Daredevil",
+            image: "https://i.annihil.us/u/prod/marvel/i/mg/6/90/537ba6d49472b/standard_xlarge.jpg"
+          }
+        ]
+      };
+      
+      mockAxios.onGet(`${baseUrl}/heroes`).reply(200, invalidFormatData);
+  
+      await expect(heroClient.getHeroList()).rejects.toThrow(HeroClientError);
+  
+      expect(mockAxios.history.get).toHaveLength(1);
+      expect(mockAxios.history.get[0].url).toBe(`${baseUrl}/heroes`);
+    });
+  
+  })
+
 });
