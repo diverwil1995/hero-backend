@@ -112,12 +112,17 @@ export class HeroClient implements HeroClientInterface {
           "Content-Type": "application/json",
         },
       });
+
+      // 上游 API 有時會返回 HTTP 200 但內容為錯誤訊息 {code: 1000, message: "Backend Error"}
+      // 因此需要透過 schema validation 來檢查回應資料結構的正確性
+      // 如果資料結構不符預期，將拋出 ValidationError 進入 catch 區塊處理
       const validatedResponse = await getAuthDataSchema.validate(
         authResponse.data,
       );
 
       return validatedResponse === "OK";
     } catch (error: any) {
+      // 區分真正的 401 認證失敗與偽裝成 200 的後端錯誤
       if (error?.response?.status === 401) {
         return false;
       }
