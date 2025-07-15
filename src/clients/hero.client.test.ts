@@ -26,7 +26,9 @@ describe("HeroClient - 測試", () => {
         password: correctPassword,
       };
 
-      mockAxios.onPost(`${baseUrl}/auth`, expectedRequestData).reply(200, "OK");
+      mockAxios
+        .onPost(`${baseUrl}/auth`, expectedRequestData)
+        .reply(200, "OK");
 
       const result = await heroClient.auth(correctName, correctPassword);
 
@@ -222,7 +224,9 @@ describe("HeroClient - 測試", () => {
         },
       ];
 
-      mockAxios.onGet(`${baseUrl}/heroes`).reply(200, expectedHeroesData);
+      mockAxios
+        .onGet(`${baseUrl}/heroes`)
+        .reply(200, expectedHeroesData);
 
       const result = await heroClient.getHeroList();
 
@@ -248,7 +252,9 @@ describe("HeroClient - 測試", () => {
         },
       ];
 
-      mockAxios.onGet(`${baseUrl}/heroes`).reply(200, incompleteHeroesData);
+      mockAxios
+        .onGet(`${baseUrl}/heroes`)
+        .reply(200, incompleteHeroesData);
 
       await expect(heroClient.getHeroList()).rejects.toThrow(HeroClientError);
 
@@ -268,7 +274,9 @@ describe("HeroClient - 測試", () => {
         ],
       };
 
-      mockAxios.onGet(`${baseUrl}/heroes`).reply(200, invalidFormatData);
+      mockAxios
+        .onGet(`${baseUrl}/heroes`)
+        .reply(200, invalidFormatData);
 
       await expect(heroClient.getHeroList()).rejects.toThrow(HeroClientError);
 

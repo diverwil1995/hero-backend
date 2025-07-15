@@ -19,7 +19,6 @@ export const authMiddleware = (heroClient: HeroClient) => {
     if (req.locals === undefined) {
       req.locals = {};
     }
-    // req.locals ??= {}
     req.locals.hasPermission = hasPermission;
     next();
   };

@@ -46,7 +46,6 @@ export class HeroClient implements HeroClientInterface {
   }
 
   async getHero(heroId: string): Promise<HeroResponse> {
-    // TODO: 將 url 寫入 constructor
     const heroUrl: string = `${this.baseUrl}/heroes/${heroId}`;
     try {
       const heroResponse = await this.axiosInstance.get(heroUrl, {
@@ -67,7 +66,6 @@ export class HeroClient implements HeroClientInterface {
 
   async getHeroList(): Promise<HeroesResponse> {
     try {
-      // TODO: 將 url 寫入 constructor
       const heroUrl: string = `${this.baseUrl}/heroes`;
       const heroesResponse = await this.axiosInstance.get(heroUrl, {
         headers: {

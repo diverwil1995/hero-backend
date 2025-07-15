@@ -10,7 +10,7 @@ describe("heroController - 測試", () => {
   const getHeroResponseBody = {
     id: "1",
     name: "Daredevil",
-    image: "https://i.com/xlarge.jpg",
+    image: "https://i.annihil.us/u/prod/marvel/i/mg/6/90/537ba6d49472b/standard_xlarge.jpg",
   };
   const getHeroListResponseBody = [getHeroResponseBody];
   const getHeroProfileResponseBody = {
@@ -30,7 +30,9 @@ describe("heroController - 測試", () => {
     mockAxios
       .onGet(`${baseUrl}/heroes/${getHeroResponseBody.id}`)
       .reply(200, getHeroResponseBody);
-    mockAxios.onGet(`${baseUrl}/heroes`).reply(200, getHeroListResponseBody);
+    mockAxios
+      .onGet(`${baseUrl}/heroes`)
+      .reply(200, getHeroListResponseBody);
     mockAxios
       .onGet(`${baseUrl}/heroes/${getHeroResponseBody.id}/profile`)
       .reply(200, getHeroProfileResponseBody);
@@ -58,7 +60,9 @@ describe("heroController - 測試", () => {
     });
 
     it("接收沒有授權的回應", async () => {
-      const response = await request(app).get("/heroes");
+      const response = await request(app)
+        .get("/heroes");
+
       expect(response.status).toEqual(200);
       expect(response.body).toStrictEqual({
         heroes: getHeroListResponseBody,
@@ -72,6 +76,7 @@ describe("heroController - 測試", () => {
         .get(`/heroes/${getHeroResponseBody.id}`)
         .set("name", "hahow")
         .set("password", "rocks");
+
       expect(response.status).toEqual(200);
       expect(response.body).toStrictEqual({
         ...getHeroResponseBody,
@@ -80,9 +85,9 @@ describe("heroController - 測試", () => {
     });
 
     it("接收沒有授權的回應", async () => {
-      const response = await request(app).get(
-        `/heroes/${getHeroResponseBody.id}`,
-      );
+      const response = await request(app)
+      .get(`/heroes/${getHeroResponseBody.id}`);
+
       expect(response.status).toEqual(200);
       expect(response.body).toStrictEqual(getHeroResponseBody);
     });

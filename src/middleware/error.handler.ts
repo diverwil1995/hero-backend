@@ -7,7 +7,7 @@ export const errorHandler = (
   res: Response,
   next: NextFunction,
 ) => {
-  console.error(err.stack);
+  // console.error(err.stack);
 
   let status = 500;
   let message = "Unknown error occurred";
